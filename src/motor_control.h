@@ -1,0 +1,59 @@
+#ifndef MOTOR_CONTROLLER_CPP_
+#define MOTOR_CONTROLLER_CPP_
+
+#include <micro_ros_arduino.h>
+#include <ESP32Servo.h> 
+
+int motor_pwm_min = 1500;
+int motor_pwm_max = 2500;
+
+int motor_pwm_left;
+int motor_pwm_right;
+
+// create servo objects to control ESCs
+Servo motor_left;  
+Servo motor_right;  
+
+// Possible PWM GPIO pins on the ESP32: 0(used by on-board button),2,4,5(used by on-board LED),12-19,21-23,25-27,32-33 
+// Possible PWM GPIO pins on the ESP32-S2: 0(used by on-board button),1-17,18(used by on-board LED),19-21,26,33-42 
+int motor_pin_left = 18;      // GPIO pin used to connect the servo control (digital out)
+int motor_pin_right = 19;      // GPIO pin used to connect the servo control (digital out)
+
+void setup_motor_control()
+{
+	// Allow allocation of all timers
+	ESP32PWM::allocateTimer(0);
+	ESP32PWM::allocateTimer(1);
+	ESP32PWM::allocateTimer(2);
+	ESP32PWM::allocateTimer(3);
+
+  motor_left.setPeriodHertz(50);// Standard 50hz servo
+  motor_left.attach(motor_pin_left, 500, 2500);   // attaches the servo 
+
+  motor_right.setPeriodHertz(50);// Standard 50hz servo
+  motor_right.attach(motor_pin_right, 500, 2500);   // attaches the servo
+}
+
+void set_motors_from_twist(double speed, double rotation)
+{
+  double left = speed;
+  double right = speed;
+
+  if(rotation != 0.00){
+    if(speed != 0){
+      left = speed * rotation;
+      right = speed * -rotation;
+    }else{
+      left = 0.5 * rotation;
+      right = 0.5 * -rotation;
+    }
+  }
+
+  motor_pwm_left = left * (motor_pwm_max - motor_pwm_min) + motor_pwm_min;
+  motor_pwm_right = right * (motor_pwm_max - motor_pwm_min) + motor_pwm_min;
+
+  // Update motor pwm
+  motor_left.write(motor_pwm_left);
+  motor_right.write(motor_pwm_right);
+}
+#endif
