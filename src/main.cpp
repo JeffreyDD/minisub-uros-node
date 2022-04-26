@@ -14,9 +14,6 @@
 #include "motor_control_subscriber.h"
 #include "motor_control.h"
 
-//#define IMU_PUBLISHER_ENABLED
-#define MOTOR_CONTROL_ENABLED
-
 #include "config.h"
 
 void setup() {
