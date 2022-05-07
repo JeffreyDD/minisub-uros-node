@@ -6,6 +6,8 @@
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 
+#include <micro_ros_utilities/string_utilities.h>
+
 #include <sensor_msgs/msg/imu.h>
 
 #include "util.h"
@@ -22,13 +24,26 @@ void imu_publisher_setup(){
     &publisher,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
-    "topic_name"));
-  Serial.println("Created rclc ROS Publisher");
+    "imu"
+  ));
+  Serial.println("Created rclc ROS Publisher /imu");
 }
 
 void imu_publish() {
     imu_update();
+
+    // Serial.print("IMU Updated: ");
+    // Serial.print(aX);
+    // Serial.print(",");
+    // Serial.print(aY);
+    // Serial.print(",");
+    // Serial.println(aZ);
+
+    // rosidl_runtime_c__String frame_id = "base_link";
     
+    msg.header.frame_id = micro_ros_string_utilities_init("base_link");
+    msg.header.stamp.sec = millis()/1000;
+
     msg.linear_acceleration.x = aX;
     msg.linear_acceleration.y = aY;
     msg.linear_acceleration.z = aZ;
