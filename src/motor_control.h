@@ -4,8 +4,10 @@
 #include <micro_ros_arduino.h>
 #include <ESP32Servo.h> 
 
-int motor_pwm_min = 1500;
-int motor_pwm_max = 2500;
+int motor_pwm_min = 1250;
+int motor_pwm_max = 1750;
+// int motor_pwm_min = 500;
+// int motor_pwm_max = 2500;
 
 int motor_pwm_left;
 int motor_pwm_right;
@@ -28,14 +30,22 @@ void setup_motor_control()
 	ESP32PWM::allocateTimer(3);
 
   motor_left.setPeriodHertz(50);// Standard 50hz servo
-  motor_left.attach(motor_pin_left, 500, 2500);   // attaches the servo 
+  motor_left.attach(motor_pin_left, motor_pwm_min, motor_pwm_max);   // attaches the servo 
 
   motor_right.setPeriodHertz(50);// Standard 50hz servo
-  motor_right.attach(motor_pin_right, 500, 2500);   // attaches the servo
+  motor_right.attach(motor_pin_right, motor_pwm_min, motor_pwm_max);   // attaches the servo
 }
 
 void set_motors_from_twist(double speed, double rotation)
 {
+  if(speed > 1)
+    speed = 1;
+    
+  if(speed < -1)
+    speed = -1;
+
+  speed = -speed;
+
   double left = speed;
   double right = speed;
 
@@ -44,13 +54,13 @@ void set_motors_from_twist(double speed, double rotation)
       left = speed * rotation;
       right = speed * -rotation;
     }else{
-      left = 0.5 * rotation;
-      right = 0.5 * -rotation;
+      left = 0.5 * -rotation;
+      right = 0.5 * rotation;
     }
   }
 
-  motor_pwm_left = left * (motor_pwm_max - motor_pwm_min) + motor_pwm_min;
-  motor_pwm_right = right * (motor_pwm_max - motor_pwm_min) + motor_pwm_min;
+  motor_pwm_left = (left * ((motor_pwm_max - motor_pwm_min) / 2)) + motor_pwm_min + ((motor_pwm_max - motor_pwm_min) / 2);
+  motor_pwm_right = (right * ((motor_pwm_max - motor_pwm_min) / 2)) + motor_pwm_min + ((motor_pwm_max - motor_pwm_min) / 2);
 
   // Update motor pwm
   motor_left.write(motor_pwm_left);

@@ -18,15 +18,13 @@
 
 void setup() {
   Serial.begin(115200);
+  Serial.println("Setup");
 
   set_microros_wifi_transports(WIFI_SSID, WIFI_PASS, ROS_AGENT_IP, ROS_AGENT_PORT);
   Serial.println("Set microros transport to wifi");
   
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);  
-  
-  setup_motor_control();
-  Serial.println("Setup motor control done");
 
   delay(2000);
 
@@ -34,12 +32,21 @@ void setup() {
   Serial.println("Setup node done");
 
 #ifdef IMU_PUBLISHER_ENABLED
+  // Setup IMU
+  imu_setup();
+
   // Setup IMU publisher
   imu_publisher_setup();
+  
   Serial.println("Setup IMU Publisher done");
 #endif
 
 #ifdef MOTOR_CONTROL_ENABLED
+  // Setup motor control (PWM pins)
+  setup_motor_control();
+  Serial.println("Setup motor control done");
+
+  // Setup Twist subscriber
   twist_subscription_setup();
   Serial.println("Setup twist subscription done");
 #endif
@@ -47,6 +54,7 @@ void setup() {
 }
 
 void loop() {
+  // Serial.println("Looping");
 #ifdef IMU_PUBLISHER_ENABLED
   // Gather and publish IMU Data
   imu_publish();
@@ -61,5 +69,5 @@ void loop() {
   Serial.println(motor_pwm_right);
 #endif
   
-  // delay(100);
+  delay(100);
 }
