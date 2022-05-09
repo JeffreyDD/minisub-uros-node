@@ -1,3 +1,6 @@
+#ifndef NODE_H_
+#define NODE_H_
+
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
 #include <rclc/rclc.h>
@@ -18,3 +21,5 @@ void node_setup(){
     // create node
     RCCHECK(rclc_node_init_default(&node, "minisub", "", &support));
 }
+
+#endif

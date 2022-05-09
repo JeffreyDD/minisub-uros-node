@@ -1,3 +1,6 @@
+#ifndef IMU_H_
+#define IMU_H_
+
 #include <MPU9250_asukiaaa.h>
 
 #define IMU_SDA_PIN 21
@@ -44,3 +47,20 @@ void imu_update()
     Serial.println("Cannot read mag values"); 
   }
 }
+
+void euler_to_quat(float x, float y, float z, double* q) {
+    float c1 = cos((y*3.14/180.0)/2);
+    float c2 = cos((z*3.14/180.0)/2);
+    float c3 = cos((x*3.14/180.0)/2);
+
+    float s1 = sin((y*3.14/180.0)/2);
+    float s2 = sin((z*3.14/180.0)/2);
+    float s3 = sin((x*3.14/180.0)/2);
+
+    q[0] = c1 * c2 * c3 - s1 * s2 * s3;
+    q[1] = s1 * s2 * c3 + c1 * c2 * s3;
+    q[2] = s1 * c2 * c3 + c1 * s2 * s3;
+    q[3] = c1 * s2 * c3 - s1 * c2 * s3;
+}
+
+#endif

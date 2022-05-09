@@ -11,6 +11,7 @@
 #include "util.h"
 //#include "node.h"
 #include "imu_publisher.h"
+#include "imu_publisher_raw.h"
 #include "motor_control_subscriber.h"
 #include "motor_control.h"
 
@@ -31,14 +32,23 @@ void setup() {
   node_setup();
   Serial.println("Setup node done");
 
-#ifdef IMU_PUBLISHER_ENABLED
+#if defined(IMU_PUBLISHER_ENABLED) || defined(RAW_IMU_PUBLISHER_ENABLED)
   // Setup IMU
   imu_setup();
+#endif
 
+#ifdef IMU_PUBLISHER_ENABLED 
   // Setup IMU publisher
   imu_publisher_setup();
   
   Serial.println("Setup IMU Publisher done");
+#endif
+
+#ifdef RAW_IMU_PUBLISHER_ENABLED 
+  // Setup IMU publisher
+  raw_imu_publisher_setup();
+  
+  Serial.println("Setup Raw IMU Publisher done");
 #endif
 
 #ifdef MOTOR_CONTROL_ENABLED
@@ -55,9 +65,20 @@ void setup() {
 
 void loop() {
   // Serial.println("Looping");
+
+#if defined(IMU_PUBLISHER_ENABLED) || defined(RAW_IMU_PUBLISHER_ENABLED)
+  // Gather IMU Data
+  imu_update();
+#endif
+
 #ifdef IMU_PUBLISHER_ENABLED
-  // Gather and publish IMU Data
+  // Publish IMU Data
   imu_publish();
+#endif
+
+#ifdef IMU_PUBLISHER_ENABLED
+  // Publish IMU Data
+  imu_raw_publish();
 #endif
 
 #ifdef MOTOR_CONTROL_ENABLED
