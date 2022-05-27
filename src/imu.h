@@ -3,8 +3,8 @@
 
 #include <MPU9250_asukiaaa.h>
 
-#define IMU_SDA_PIN 21
-#define IMU_SCL_PIN 22
+#define IMU_SDA_PIN 15
+#define IMU_SCL_PIN 14
 
 MPU9250_asukiaaa imu_sensor;
 float aX, aY, aZ, aSqrt, gX, gY, gZ, mDirection, mX, mY, mZ;

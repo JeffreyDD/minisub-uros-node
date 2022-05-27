@@ -1,3 +1,6 @@
+#ifndef MOTOR_CONTROL_TWIST_SUBSCRIBER_H_
+#define MOTOR_CONTROL_TWIST_SUBSCRIBER_H_
+
 #include <micro_ros_arduino.h>
 
 #include <stdio.h>
@@ -9,6 +12,7 @@
 #include <geometry_msgs/msg/twist.h>
 
 #include "util.h"
+#include "node.h"
 #include "motor_control.h"
 
 rcl_subscription_t twist_subscriber;
@@ -47,4 +51,4 @@ void twist_subscription_setup(){
   RCCHECK(rclc_executor_add_subscription(&twist_executor, &twist_subscriber, &twist_msg, &twist_subscription_callback, ON_NEW_DATA));
 }
 
-
+#endif

@@ -9,11 +9,12 @@
 #include <geometry_msgs/msg/twist.h>
 
 #include "util.h"
-//#include "node.h"
+#include "node.h"
 #include "imu_publisher.h"
 #include "imu_publisher_raw.h"
-#include "motor_control_subscriber.h"
+#include "motor_control_twist_subscriber.h"
 #include "motor_control.h"
+#include "power_publisher.h"
 
 #include "config.h"
 
@@ -29,7 +30,7 @@ void setup() {
 
   delay(2000);
 
-  node_setup();
+  node_setup(NODE_NAME);
   Serial.println("Setup node done");
 
 #if defined(IMU_PUBLISHER_ENABLED) || defined(RAW_IMU_PUBLISHER_ENABLED)
@@ -61,12 +62,23 @@ void setup() {
   Serial.println("Setup twist subscription done");
 #endif
 
+#ifdef POWER_PUBLISHER_ENABLED
+  // Setup INA226 power meter board
+  power_meter_setup();
+
+  // Setup battery state publisher
+  power_publisher_setup();
+#endif
+
 }
 
 void loop() {
   // Serial.println("Looping");
 
 #if defined(IMU_PUBLISHER_ENABLED) || defined(RAW_IMU_PUBLISHER_ENABLED)
+  // Add a delay to ensure we're not segfaulting every 50 seconds?
+  delay(100);
+  
   // Gather IMU Data
   imu_update();
 #endif
@@ -89,6 +101,9 @@ void loop() {
   Serial.print(",");
   Serial.println(motor_pwm_right);
 #endif
+
+#ifdef POWER_PUBLISHER_ENABLED
+  power_publish();
+#endif
   
-  delay(100);
 }
