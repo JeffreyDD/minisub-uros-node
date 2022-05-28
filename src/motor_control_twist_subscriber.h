@@ -17,7 +17,6 @@
 
 rcl_subscription_t twist_subscriber;
 geometry_msgs__msg__Twist twist_msg;
-rclc_executor_t twist_executor;
 
 //twist message cb
 void twist_subscription_callback(const void *msgin) {
@@ -39,16 +38,38 @@ void twist_subscription_callback(const void *msgin) {
 }
 
 void twist_subscription_setup(){
-    // create subscriber
+  // Add parameters
+  RCCHECK(rclc_add_parameter(&param_server, "pwm_min", RCLC_PARAMETER_INT));
+  RCCHECK(rclc_add_parameter(&param_server, "pwm_max", RCLC_PARAMETER_INT));
+
+  // Set parameter defaults
+  rclc_parameter_set_int(&param_server, "pwm_min", motor_pwm_min);
+  rclc_parameter_set_int(&param_server, "pwm_max", motor_pwm_max);
+
+  // FIXME: Set parameter descriptions and constraints
+
+  // Create subscription
   RCCHECK(rclc_subscription_init_default(
     &twist_subscriber,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
     "cmd_vel"));
 
-  // create executor
-  RCCHECK(rclc_executor_init(&twist_executor, &support.context, 1, &allocator));
-  RCCHECK(rclc_executor_add_subscription(&twist_executor, &twist_subscriber, &twist_msg, &twist_subscription_callback, ON_NEW_DATA));
+  // Add subscription to node executor
+  RCCHECK(rclc_executor_add_subscription(&executor, &twist_subscriber, &twist_msg, &twist_subscription_callback, ON_NEW_DATA));
+}
+
+void twist_subscription_parameter_handler(Parameter * param){
+  printf("twist_subscription_parameter_handler got changed parameter %s\n", param->name.data);
+  
+  if(param->name.data =="pwm_min"){
+    rclc_parameter_get_int(&param_server, "pwm_min", &motor_pwm_min);
+    printf("parameter pwm_min updated to %i\n", motor_pwm_min);
+  }
+  if(param->name.data =="pwm_max"){
+    rclc_parameter_get_int(&param_server, "pwm_max", &motor_pwm_max);
+    printf("parameter pwm_max updated to %i\n", motor_pwm_max);
+  }
 }
 
 #endif
