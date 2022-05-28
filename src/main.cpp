@@ -18,6 +18,13 @@
 
 #include "config.h"
 
+void parameter_changed_callback(Parameter * param)
+{
+#ifdef MOTOR_CONTROL_ENABLED
+  twist_subscription_parameter_handler(param);
+#endif
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.println("Setup");
@@ -30,8 +37,13 @@ void setup() {
 
   delay(2000);
 
+  // Setup node
   node_setup(NODE_NAME);
   Serial.println("Setup node done");
+
+  // Add parameter server to node
+  RCCHECK(rclc_executor_add_parameter_server(&executor, &param_server, parameter_changed_callback));
+  printf("Parameter server setup done.\n");
 
 #if defined(IMU_PUBLISHER_ENABLED) || defined(RAW_IMU_PUBLISHER_ENABLED)
   // Setup IMU
@@ -95,7 +107,7 @@ void loop() {
 
 #ifdef MOTOR_CONTROL_ENABLED
   // Spin executor to ensure twist callback is called when data is pushed to the topic
-  RCCHECK(rclc_executor_spin_some(&twist_executor, RCL_MS_TO_NS(100)));
+  RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));
   
   Serial.print(motor_pwm_left);
   Serial.print(",");
