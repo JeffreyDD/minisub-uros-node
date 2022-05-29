@@ -10,6 +10,8 @@
 
 #include <sensor_msgs/msg/imu.h>
 
+#include "units.h"
+
 #include "util.h"
 #include "node.h"
 #include "imu.h"
@@ -29,32 +31,60 @@ void imu_publisher_setup(){
   Serial.println("Created rclc ROS Publisher /imu");
 }
 
-void imu_publish() {
-    // Serial.print("IMU Updated: ");
-    // Serial.print(aX);
-    // Serial.print(",");
-    // Serial.print(aY);
-    // Serial.print(",");
-    // Serial.println(aZ);
+float roll, pitch, yaw;
+int secs, nanos;
 
-    // rosidl_runtime_c__String frame_id = "base_link";
+void imu_publish() {  
+  secs = millis()/1000;
+  nanos = millis()-(secs*1000)*1000;
 
-    double q[4];
-    euler_to_quat(aX * 180, aY * 180, aZ * 180, q);
-    
-    imu_msg.header.frame_id = micro_ros_string_utilities_init("base_link");
-    imu_msg.header.stamp.sec = millis()/1000;
+  imu_msg.header.frame_id = micro_ros_string_utilities_init("base_link");
+  imu_msg.header.stamp.sec = secs;
+  imu_msg.header.stamp.nanosec = nanos;
 
-    imu_msg.orientation.w = q[0];
-    imu_msg.orientation.x = q[1];
-    imu_msg.orientation.y = q[2];
-    imu_msg.orientation.z = q[3];
+  // imu_msg.orientation_covariance = {0.0025, 0, 0, 0, 0.0025, 0, 0, 0, 0.0025};
+  // imu_msg.angular_velocity_covariance = {0.0025, 0, 0, 0, 0.0025, 0, 0, 0, 0.0025};
+  // imu_msg.linear_acceleration_covariance = {0.0025, 0, 0, 0, 0.0025, 0, 0, 0, 0.0025};
 
-    imu_msg.linear_acceleration.x = gX;
-    imu_msg.linear_acceleration.y = gY;
-    imu_msg.linear_acceleration.z = gZ;
+  //roll = (float)atan2(acc_gyro.raw.acc_y, acc_gyro.raw.acc_z);
+  float accel_x_g = bfs::convacc(accel_x_mps2, bfs::LinAccUnit::MPS2, bfs::LinAccUnit::G);
+  float accel_y_g = bfs::convacc(accel_y_mps2, bfs::LinAccUnit::MPS2, bfs::LinAccUnit::G);
+  float accel_z_g = bfs::convacc(accel_z_mps2, bfs::LinAccUnit::MPS2, bfs::LinAccUnit::G);
+  
+  // Calculate roll
+  roll = (float)atan2(accel_y_g, accel_z_g);
 
-    RCSOFTCHECK(rcl_publish(&imu_publisher, &imu_msg, NULL));
+  // Calculate pitch
+  if (accel_y_g * sin(roll) + accel_z_g * cos(roll) == 0){
+    if (accel_x_g>0){
+      pitch = PI / 2;
+    } else{
+      pitch = -PI / 2;
+    }
+  }else{
+    pitch = (float)atan(-accel_x_g / (accel_y_g * sin(roll) + accel_z_g * cos(roll)));
+  }
 
-    // Serial.println("Orientation sent");
+  // Calculate yaw
+  yaw = (float)atan2(mag_x_ut * sin(roll) - mag_y_ut * cos(roll), mag_x_ut * cos(pitch) + mag_y_ut * sin(pitch) * sin(roll) + mag_z_ut * sin(pitch) * cos(roll));
+  
+  // Set orientation
+  imu_msg.orientation.x = roll;
+  imu_msg.orientation.y = pitch;
+  imu_msg.orientation.z = yaw;
+  imu_msg.orientation.w = 1;
+
+  // Set linear accelaration
+  imu_msg.linear_acceleration.x = accel_x_mps2;
+  imu_msg.linear_acceleration.y = accel_y_mps2;
+  imu_msg.linear_acceleration.z = accel_z_mps2;
+
+  // Set angular velocity
+  imu_msg.angular_velocity.x = gyro_x_radps;
+  imu_msg.angular_velocity.y = gyro_y_radps;
+  imu_msg.angular_velocity.z = gyro_z_radps;
+
+  RCSOFTCHECK(rcl_publish(&imu_publisher, &imu_msg, NULL));
+
+  // Serial.println("Orientation sent");
 }

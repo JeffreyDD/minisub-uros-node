@@ -1,66 +1,60 @@
 #ifndef IMU_H_
 #define IMU_H_
 
-#include <MPU9250_asukiaaa.h>
+#include "mpu9250.h"
+
+/* Mpu9250 object */
+bfs::Mpu9250 imu;
 
 #define IMU_SDA_PIN 15
 #define IMU_SCL_PIN 14
 
-MPU9250_asukiaaa imu_sensor;
-float aX, aY, aZ, aSqrt, gX, gY, gZ, mDirection, mX, mY, mZ;
+float accel_x_mps2, accel_y_mps2, accel_z_mps2;
+float gyro_x_radps, gyro_y_radps, gyro_z_radps;
+float mag_x_ut, mag_y_ut, mag_z_ut;
+float die_temp_c;
 
 void imu_setup()
 {
+  // Initialize I2C using Wire library
   Wire.begin(IMU_SDA_PIN, IMU_SCL_PIN);
-  imu_sensor.setWire(&Wire);
+  Wire.setClock(400000);
 
-  imu_sensor.beginAccel();
-  imu_sensor.beginGyro();
-  imu_sensor.beginMag();
+  // Configure IMU object
+  imu.Config(&Wire, bfs::Mpu9250::I2C_ADDR_PRIM);
+
+  // Initialize IMU 
+  if (!imu.Begin()) {
+    Serial.println("Error initializing communication with IMU");
+    while(1) {}
+  }
+  // Set the IMU sample rate divider
+  if (!imu.ConfigSrd(19)) {
+    Serial.println("Error configuring SRD");
+    while(1) {}
+  }
 }
 
 void imu_update()
 {
-  if (imu_sensor.accelUpdate() == 0) {
-    aX = imu_sensor.accelX();
-    aY = imu_sensor.accelY();
-    aZ = imu_sensor.accelZ();
-    aSqrt = imu_sensor.accelSqrt();
-  } else {
-    Serial.println("Cannod read accel values");
+  // Read IMU
+  if (imu.Read()) {
+    // Update variables
+    accel_x_mps2 = imu.accel_x_mps2();
+    accel_y_mps2 = imu.accel_y_mps2();
+    accel_z_mps2 = imu.accel_z_mps2();
+
+    gyro_x_radps = imu.gyro_x_radps();
+    gyro_y_radps = imu.gyro_y_radps();
+    gyro_z_radps = imu.gyro_z_radps();
+
+    mag_x_ut = imu.mag_x_ut();
+    mag_y_ut = imu.mag_y_ut();
+    mag_z_ut = imu.mag_z_ut();
+    
+    die_temp_c = imu.die_temp_c();
   }
-
-  if (imu_sensor.gyroUpdate() == 0) {
-    gX = imu_sensor.gyroX();
-    gY = imu_sensor.gyroY();
-    gZ = imu_sensor.gyroZ();
-  } else {
-    Serial.println("Cannot read gyro values");
-  }
-
-  if (imu_sensor.magUpdate() == 0) {
-    mX = imu_sensor.magX();
-    mY = imu_sensor.magY();
-    mZ = imu_sensor.magZ();
-    mDirection = imu_sensor.magHorizDirection();
-  } else {
-    Serial.println("Cannot read mag values"); 
-  }
-}
-
-void euler_to_quat(float x, float y, float z, double* q) {
-    float c1 = cos((y*3.14/180.0)/2);
-    float c2 = cos((z*3.14/180.0)/2);
-    float c3 = cos((x*3.14/180.0)/2);
-
-    float s1 = sin((y*3.14/180.0)/2);
-    float s2 = sin((z*3.14/180.0)/2);
-    float s3 = sin((x*3.14/180.0)/2);
-
-    q[0] = c1 * c2 * c3 - s1 * s2 * s3;
-    q[1] = s1 * s2 * c3 + c1 * c2 * s3;
-    q[2] = s1 * c2 * c3 + c1 * s2 * s3;
-    q[3] = c1 * s2 * c3 - s1 * c2 * s3;
 }
 
 #endif
+
