@@ -10,7 +10,9 @@
 
 #include <sensor_msgs/msg/imu.h>
 
+#include "eigen.h"
 #include "units.h"
+#include "navigation.h"
 
 #include "util.h"
 #include "node.h"
@@ -47,32 +49,36 @@ void imu_publish() {
   // imu_msg.linear_acceleration_covariance = {0.0025, 0, 0, 0, 0.0025, 0, 0, 0, 0.0025};
 
   //roll = (float)atan2(acc_gyro.raw.acc_y, acc_gyro.raw.acc_z);
-  float accel_x_g = bfs::convacc(accel_x_mps2, bfs::LinAccUnit::MPS2, bfs::LinAccUnit::G);
-  float accel_y_g = bfs::convacc(accel_y_mps2, bfs::LinAccUnit::MPS2, bfs::LinAccUnit::G);
-  float accel_z_g = bfs::convacc(accel_z_mps2, bfs::LinAccUnit::MPS2, bfs::LinAccUnit::G);
+  // float accel_x_g = bfs::convacc(accel_x_mps2, bfs::LinAccUnit::MPS2, bfs::LinAccUnit::G);
+  // float accel_y_g = bfs::convacc(accel_y_mps2, bfs::LinAccUnit::MPS2, bfs::LinAccUnit::G);
+  // float accel_z_g = bfs::convacc(accel_z_mps2, bfs::LinAccUnit::MPS2, bfs::LinAccUnit::G);
   
-  // Calculate roll
-  roll = (float)atan2(accel_y_g, accel_z_g);
+  // // Calculate roll
+  // roll = (float)atan2(accel_y_g, accel_z_g);
 
-  // Calculate pitch
-  if (accel_y_g * sin(roll) + accel_z_g * cos(roll) == 0){
-    if (accel_x_g>0){
-      pitch = PI / 2;
-    } else{
-      pitch = -PI / 2;
-    }
-  }else{
-    pitch = (float)atan(-accel_x_g / (accel_y_g * sin(roll) + accel_z_g * cos(roll)));
-  }
+  // // Calculate pitch
+  // if (accel_y_g * sin(roll) + accel_z_g * cos(roll) == 0){
+  //   if (accel_x_g>0){
+  //     pitch = PI / 2;
+  //   } else{
+  //     pitch = -PI / 2;
+  //   }
+  // }else{
+  //   pitch = (float)atan(-accel_x_g / (accel_y_g * sin(roll) + accel_z_g * cos(roll)));
+  // }
 
-  // Calculate yaw
-  yaw = (float)atan2(mag_x_ut * sin(roll) - mag_y_ut * cos(roll), mag_x_ut * cos(pitch) + mag_y_ut * sin(pitch) * sin(roll) + mag_z_ut * sin(pitch) * cos(roll));
+  // // Calculate yaw
+  // yaw = (float)atan2(mag_x_ut * sin(roll) - mag_y_ut * cos(roll), mag_x_ut * cos(pitch) + mag_y_ut * sin(pitch) * sin(roll) + mag_z_ut * sin(pitch) * cos(roll));
   
+  Eigen::Vector3f ypr_rad = bfs::TiltCompass(accel_mps2, mag_ut);
+  //printf("%f,%f,%f\n",- ypr_rad.x(), ypr_rad.y(), -ypr_rad.z());
+  Eigen::Quaternionf quat = bfs::angle2quat(-ypr_rad.x(), ypr_rad.y(), -ypr_rad.z()); // Build quat on X over Y over Z, how IMU's normally work
+
   // Set orientation
-  imu_msg.orientation.x = roll;
-  imu_msg.orientation.y = pitch;
-  imu_msg.orientation.z = yaw;
-  imu_msg.orientation.w = 1;
+  imu_msg.orientation.x = quat.x();
+  imu_msg.orientation.y = quat.y();
+  imu_msg.orientation.z = quat.z();
+  imu_msg.orientation.w = quat.w();
 
   // Set linear accelaration
   imu_msg.linear_acceleration.x = accel_x_mps2;
