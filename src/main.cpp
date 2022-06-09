@@ -12,6 +12,7 @@
 #include "node.h"
 #include "imu_publisher.h"
 #include "imu_publisher_raw.h"
+#include "mag_publisher.h"
 #include "temp_publisher.h"
 #include "motor_control_twist_subscriber.h"
 #include "motor_control.h"
@@ -34,7 +35,7 @@ void setup() {
   node_setup(NODE_NAME);
   Serial.println("Setup node done");
 
-#if defined(IMU_PUBLISHER_ENABLED) || defined(RAW_IMU_PUBLISHER_ENABLED) || defined(TEMP_PUBLISHER_ENABLED)
+#if defined(IMU_PUBLISHER_ENABLED) || defined(RAW_IMU_PUBLISHER_ENABLED) || defined(MAG_PUBLISHER_ENABLED) || defined(TEMP_PUBLISHER_ENABLED)
   // Setup IMU
   imu_setup();
 #endif
@@ -49,6 +50,12 @@ void setup() {
   // Setup IMU publisher
   raw_imu_publisher_setup();
   Serial.println("Setup Raw IMU Publisher done");
+#endif
+
+#ifdef MAG_PUBLISHER_ENABLED
+  // Setup Magnetic field publisher
+  mag_publisher_setup();
+  Serial.println("Setup Mag Publisher done");
 #endif
 
 #ifdef TEMP_PUBLISHER_ENABLED
@@ -80,7 +87,7 @@ void setup() {
 void loop() {
   // Serial.println("Looping");
 
-#if defined(IMU_PUBLISHER_ENABLED) || defined(RAW_IMU_PUBLISHER_ENABLED) || defined(TEMP_PUBLISHER_ENABLED)
+#if defined(IMU_PUBLISHER_ENABLED) || defined(RAW_IMU_PUBLISHER_ENABLED) || defined(MAG_PUBLISHER_ENABLED) || defined(TEMP_PUBLISHER_ENABLED)
   // Add a delay to ensure we're not segfaulting every 50 seconds?
   delay(100);
   
@@ -96,6 +103,11 @@ void loop() {
 #ifdef IMU_PUBLISHER_ENABLED
   // Publish IMU Data
   imu_raw_publish();
+#endif
+
+#ifdef MAG_PUBLISHER_ENABLED
+  // Publish Magnetometer Data
+  mag_publish();
 #endif
 
 #ifdef TEMP_PUBLISHER_ENABLED
