@@ -42,7 +42,7 @@ void imu_publish() {
     double q[4];
     euler_to_quat(aX * 180, aY * 180, aZ * 180, q);
     
-    imu_msg.header.frame_id = micro_ros_string_utilities_init("base_link");
+    imu_msg.header.frame_id = micro_ros_string_utilities_init("imu_link");
     imu_msg.header.stamp.sec = millis()/1000;
 
     imu_msg.orientation.w = q[0];
