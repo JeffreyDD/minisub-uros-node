@@ -40,7 +40,7 @@ void imu_publish() {
   secs = millis()/1000;
   nanos = millis()-(secs*1000)*1000;
 
-  imu_msg.header.frame_id = micro_ros_string_utilities_init("base_link");
+  imu_msg.header.frame_id = micro_ros_string_utilities_init("imu_link");
   imu_msg.header.stamp.sec = secs;
   imu_msg.header.stamp.nanosec = nanos;
 
