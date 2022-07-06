@@ -15,6 +15,7 @@
 
 #include <sensor_msgs/msg/battery_state.h>
 
+#include "config.h"
 #include "util.h"
 #include "node.h"
 
@@ -23,6 +24,7 @@
 INA226 ina;
 
 rcl_publisher_t power_publisher;  
+rcl_timer_t power_timer;
 
 sensor_msgs__msg__BatteryState power_msg;
 
@@ -44,6 +46,21 @@ void power_meter_setup(){
   ina.setAveraging(INA226_AVG_X4); 
 }
 
+// Very rudimentary timing mechanism
+int lastPowerPub = 0;
+int powerPubInterval = 500;
+
+void power_publish(rcl_timer_t * timer, int64_t last_call_time) {
+  if(lastPowerPub + powerPubInterval < millis()){
+    power_msg.voltage = ina.getVoltage();
+    power_msg.current = ina.getCurrent();
+
+    RCSOFTCHECK(rcl_publish(&power_publisher, &power_msg, NULL));
+
+    lastPowerPub = millis();
+  }
+}
+
 void power_publisher_setup(){
   bool success = micro_ros_utilities_create_message_memory(
     ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState),
@@ -59,23 +76,15 @@ void power_publisher_setup(){
     ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState),
     TOPIC_POWER_NAME
   ));
-
   Serial.println("Created rclc ROS Publisher /battery");
-}
 
-// Very rudimentary timing mechanism
-int lastPowerPub = 0;
-int powerPubInterval = 500;
+  // init timer
+  RCCHECK(rclc_timer_init_default(&power_timer, &support, RCL_MS_TO_NS(POWER_PUBLISHER_TIMER_INTERVAL), power_publish));
+  Serial.println("Created rclc timer for /battery");
 
-void power_publish() {
-  if(lastPowerPub + powerPubInterval < millis()){
-    power_msg.voltage = ina.getVoltage();
-    power_msg.current = ina.getCurrent();
-
-    RCSOFTCHECK(rcl_publish(&power_publisher, &power_msg, NULL));
-
-    lastPowerPub = millis();
-  }
+  // add timer to executor
+  RCCHECK(rclc_executor_add_timer(&executor, &power_timer));
+  Serial.println("Add rclc timer for /battery to executor");
 }
 
 #endif

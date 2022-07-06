@@ -23,7 +23,7 @@ void node_setup(char* node_name){
     RCCHECK(rclc_node_init_default(&node, node_name, "", &support));
 
     // create executor
-    RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
+    RCCHECK(rclc_executor_init(&executor, &support.context, 6, &allocator));
 }
 
 #endif

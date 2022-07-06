@@ -94,35 +94,9 @@ void loop() {
   // Spin executor
   RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));
 
-// #ifdef IMU_PUBLISHER_ENABLED
-//   // Publish IMU Data
-//   imu_publish();
-// #endif
-
-// #ifdef IMU_PUBLISHER_ENABLED
-//   // Publish IMU Data
-//   imu_raw_publish();
-// #endif
-
-// #ifdef MAG_PUBLISHER_ENABLED
-//   // Publish Magnetometer Data
-//   mag_publish();
-// #endif
-
-// #ifdef TEMP_PUBLISHER_ENABLED
-//   // Publish Temperature Data
-//   temp_publish();
-// #endif
-
-// #ifdef MOTOR_CONTROL_ENABLED
-  
-  // Serial.print(motor_pwm_left);
-  // Serial.print(",");
-  // Serial.println(motor_pwm_right);
-// #endif
-
-// #ifdef POWER_PUBLISHER_ENABLED
-//   power_publish();
-// #endif
-  
+#ifdef MOTOR_CONTROL_ENABLED
+  Serial.print(motor_pwm_left);
+  Serial.print(",");
+  Serial.println(motor_pwm_right);
+#endif  
 }

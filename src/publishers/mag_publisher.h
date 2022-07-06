@@ -10,26 +10,17 @@
 
 #include <sensor_msgs/msg/magnetic_field.h>
 
+#include "config.h"
 #include "util.h"
 #include "node.h"
 #include "drivers/imu.h"
 
 rcl_publisher_t mag_publisher;  
+rcl_timer_t mag_timer;
 
 sensor_msgs__msg__MagneticField mag_msg;
 
-void mag_publisher_setup(){
-  // create publisher
-  RCCHECK(rclc_publisher_init_best_effort(
-    &mag_publisher,
-    &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, MagneticField),
-    "magnetometer"
-  ));
-  Serial.println("Created rclc ROS Publisher /magnetometer");
-}
-
-void mag_publish() {
+void mag_publish(rcl_timer_t * timer, int64_t last_call_time) {
     mag_msg.header.frame_id = micro_ros_string_utilities_init("base_link");
     mag_msg.header.stamp.sec = millis()/1000;
 
@@ -40,4 +31,23 @@ void mag_publish() {
     RCSOFTCHECK(rcl_publish(&mag_publisher, &mag_msg, NULL));
 
     // Serial.println("Magnetic field sent");
+}
+
+void mag_publisher_setup(){
+  // create publisher
+  RCCHECK(rclc_publisher_init_best_effort(
+    &mag_publisher,
+    &node,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, MagneticField),
+    "magnetometer"
+  ));
+  Serial.println("Created rclc ROS Publisher /magnetometer");
+
+  // init timer
+  RCCHECK(rclc_timer_init_default(&mag_timer, &support, RCL_MS_TO_NS(MAG_PUBLISHER_TIMER_INTERVAL), mag_publish));
+  Serial.println("Created rclc timer for /magnetometer");
+
+  // add timer to executor
+  RCCHECK(rclc_executor_add_timer(&executor, &mag_timer));
+  Serial.println("Add rclc timer for /magnetometer to executor");
 }
