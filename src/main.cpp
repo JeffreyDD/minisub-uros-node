@@ -10,13 +10,12 @@
 
 #include "util.h"
 #include "node.h"
-#include "imu_publisher.h"
-#include "imu_publisher_raw.h"
-#include "mag_publisher.h"
-#include "temp_publisher.h"
-#include "motor_control_twist_subscriber.h"
-#include "motor_control.h"
-#include "power_publisher.h"
+#include "publishers/imu_publisher.h"
+#include "publishers/imu_publisher_raw.h"
+#include "publishers/mag_publisher.h"
+#include "publishers/temp_publisher.h"
+#include "publishers/power_publisher.h"
+#include "subscribers/motor_control_twist_subscriber.h"
 
 #include "config.h"
 

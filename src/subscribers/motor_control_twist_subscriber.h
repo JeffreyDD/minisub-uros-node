@@ -13,7 +13,7 @@
 
 #include "util.h"
 #include "node.h"
-#include "motor_control.h"
+#include "drivers/motor_control.h"
 
 rcl_subscription_t twist_subscriber;
 geometry_msgs__msg__Twist twist_msg;

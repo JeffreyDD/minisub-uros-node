@@ -16,7 +16,7 @@
 
 #include "util.h"
 #include "node.h"
-#include "imu.h"
+#include "drivers/imu.h"
 
 rcl_publisher_t imu_publisher;  
 
