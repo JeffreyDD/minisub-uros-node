@@ -17,7 +17,6 @@
 
 rcl_subscription_t twist_subscriber;
 geometry_msgs__msg__Twist twist_msg;
-rclc_executor_t twist_executor;
 
 //twist message cb
 void twist_subscription_callback(const void *msgin) {
@@ -46,9 +45,7 @@ void twist_subscription_setup(){
     ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
     "cmd_vel"));
 
-  // create executor
-  RCCHECK(rclc_executor_init(&twist_executor, &support.context, 1, &allocator));
-  RCCHECK(rclc_executor_add_subscription(&twist_executor, &twist_subscriber, &twist_msg, &twist_subscription_callback, ON_NEW_DATA));
+  RCCHECK(rclc_executor_add_subscription(&executor, &twist_subscriber, &twist_msg, &twist_subscription_callback, ON_NEW_DATA));
 }
 
 #endif
