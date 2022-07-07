@@ -5,6 +5,8 @@
 #include <rcl/error_handling.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
+#include <rcutils/logging.h>
+#include <rcutils/logging_macros.h>
 
 #include <geometry_msgs/msg/twist.h>
 
@@ -32,6 +34,7 @@ void setup() {
   delay(2000);
 
   node_setup(NODE_NAME);
+
   Serial.println("Setup node done");
 
 #if defined(IMU_PUBLISHER_ENABLED) || defined(RAW_IMU_PUBLISHER_ENABLED) || defined(MAG_PUBLISHER_ENABLED) || defined(TEMP_PUBLISHER_ENABLED)
@@ -42,25 +45,25 @@ void setup() {
 #ifdef IMU_PUBLISHER_ENABLED 
   // Setup IMU publisher
   imu_publisher_setup();
-  Serial.println("Setup IMU Publisher done");
+  RCUTILS_LOG_INFO("Setup IMU Publisher done");
 #endif
 
 #ifdef RAW_IMU_PUBLISHER_ENABLED 
   // Setup IMU publisher
   raw_imu_publisher_setup();
-  Serial.println("Setup Raw IMU Publisher done");
+  RCUTILS_LOG_INFO("Setup Raw IMU Publisher done");
 #endif
 
 #ifdef MAG_PUBLISHER_ENABLED
   // Setup Magnetic field publisher
   mag_publisher_setup();
-  Serial.println("Setup Mag Publisher done");
+  RCUTILS_LOG_INFO("Setup Mag Publisher done");
 #endif
 
 #ifdef TEMP_PUBLISHER_ENABLED
   // Setup Temperature publisher
   temp_publisher_setup();
-  Serial.println("Setup Temperature Publisher done");
+  RCUTILS_LOG_INFO("Setup Temperature Publisher done");
 #endif
 
 #ifdef MOTOR_CONTROL_ENABLED
