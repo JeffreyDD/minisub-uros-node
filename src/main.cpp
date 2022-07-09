@@ -6,8 +6,6 @@
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 
-#include <geometry_msgs/msg/twist.h>
-
 #include "util.h"
 #include "node.h"
 #include "publishers/imu_publisher.h"
@@ -16,6 +14,8 @@
 #include "publishers/temp_publisher.h"
 #include "publishers/power_publisher.h"
 #include "subscribers/motor_control_twist_subscriber.h"
+
+#include "drivers/ina226.h"
 
 #include "config.h"
 
@@ -75,7 +75,7 @@ void setup() {
 
 #ifdef POWER_PUBLISHER_ENABLED
   // Setup INA226 power meter board
-  power_meter_setup();
+  ina226_setup();
 
   // Setup battery state publisher
   power_publisher_setup();
