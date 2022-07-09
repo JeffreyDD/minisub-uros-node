@@ -10,36 +10,19 @@
 
 #include <std_msgs/msg/float32_multi_array.h>
 
+#include "config.h"
 #include "util.h"
 #include "node.h"
 #include "drivers/imu.h"
 
 rcl_publisher_t raw_imu_publisher;  
+rcl_timer_t raw_imu_timer;
 
 std_msgs__msg__Float32MultiArray raw_imu_msg;
 
 static micro_ros_utilities_memory_conf_t conf = {0};
 
-void raw_imu_publisher_setup(){
-  // Allocate msg memory
-  bool success = micro_ros_utilities_create_message_memory(
-    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32MultiArray),
-    &raw_imu_msg,
-    conf
-  );
-
-  // Create publisher
-  RCCHECK(rclc_publisher_init_best_effort(
-    &raw_imu_publisher,
-    &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32MultiArray),
-    "imu_raw"
-  ));
-
-  Serial.println("Created rclc ROS Publisher /imu_raw");
-}
-
-void imu_raw_publish() {
+void imu_raw_publish(rcl_timer_t * timer, int64_t last_call_time) {
   // Set msg size to number of elements in array
   raw_imu_msg.data.size = 10;
 
@@ -57,6 +40,30 @@ void imu_raw_publish() {
 
   // Publish raw imu data
   RCSOFTCHECK(rcl_publish(&raw_imu_publisher, &raw_imu_msg, NULL));
+}
 
-  // Serial.println("Raw IMU data sent");
+void raw_imu_publisher_setup(){
+  // Allocate msg memory
+  micro_ros_utilities_create_message_memory(
+    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32MultiArray),
+    &raw_imu_msg,
+    conf
+  );
+
+  // Create publisher
+  RCCHECK(rclc_publisher_init_best_effort(
+    &raw_imu_publisher,
+    &node,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32MultiArray),
+    "imu_raw"
+  ));
+  Serial.println("Created rclc ROS Publisher /imu_raw");
+
+  // init timer
+  RCCHECK(rclc_timer_init_default(&raw_imu_timer, &support, RCL_MS_TO_NS(RAW_IMU_PUBLISHER_TIMER_INTERVAL), imu_raw_publish));
+  Serial.println("Created rclc timer for /imu_raw");
+
+  // add timer to executor
+  RCCHECK(rclc_executor_add_timer(&executor, &raw_imu_timer));
+  Serial.println("Add rclc timer for /imu_raw to executor");
 }
