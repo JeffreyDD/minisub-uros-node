@@ -2,7 +2,6 @@
 #define POWER_PUBLISHER_H_
 
 #include <micro_ros_arduino.h>
-#include <GyverINA.h>
 
 #include <stdio.h>
 #include <rcl/rcl.h>
@@ -19,9 +18,9 @@
 #include "util.h"
 #include "node.h"
 
-#include "config.h"
+#include "drivers/ina226.h"
 
-INA226 ina;
+#include "config.h"
 
 rcl_publisher_t power_publisher;  
 rcl_timer_t power_timer;
@@ -30,35 +29,13 @@ sensor_msgs__msg__BatteryState power_msg;
 
 static micro_ros_utilities_memory_conf_t power_mem_conf = {0};
 
-void power_meter_setup(){
-  if (ina.begin()) {
-    Serial.println(F("INA226 connected!"));
-  } else {
-    Serial.println(F("INA226 not found!"));
-    while (1);
-  }
-
-  // Serial.print(F("Calibration value: ")); 
-  // Serial.println(ina.getCalibration());
-
-  ina.setSampleTime(INA226_VBUS,   INA226_CONV_2116US);  
-  ina.setSampleTime(INA226_VSHUNT, INA226_CONV_8244US); 
-  ina.setAveraging(INA226_AVG_X4); 
-}
-
-// Very rudimentary timing mechanism
-int lastPowerPub = 0;
-int powerPubInterval = 500;
-
 void power_publish(rcl_timer_t * timer, int64_t last_call_time) {
-  if(lastPowerPub + powerPubInterval < millis()){
-    power_msg.voltage = ina.getVoltage();
-    power_msg.current = ina.getCurrent();
+    ina226_update();
+    
+    power_msg.voltage = power_voltage;
+    power_msg.current = power_current;
 
     RCSOFTCHECK(rcl_publish(&power_publisher, &power_msg, NULL));
-
-    lastPowerPub = millis();
-  }
 }
 
 void power_publisher_setup(){
