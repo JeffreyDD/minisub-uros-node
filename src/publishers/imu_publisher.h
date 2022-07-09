@@ -25,44 +25,11 @@ rcl_timer_t imu_timer;
 sensor_msgs__msg__Imu imu_msg;
 
 float roll, pitch, yaw;
-int secs, nanos;
 
 void imu_publish(rcl_timer_t * timer, int64_t last_call_time) {  
-  secs = millis()/1000;
-  nanos = millis()-(secs*1000)*1000;
+  update_time_header(&imu_msg.header.stamp);
 
-  imu_msg.header.frame_id = micro_ros_string_utilities_init("imu_link");
-  imu_msg.header.stamp.sec = secs;
-  imu_msg.header.stamp.nanosec = nanos;
-
-  // imu_msg.orientation_covariance = {0.0025, 0, 0, 0, 0.0025, 0, 0, 0, 0.0025};
-  // imu_msg.angular_velocity_covariance = {0.0025, 0, 0, 0, 0.0025, 0, 0, 0, 0.0025};
-  // imu_msg.linear_acceleration_covariance = {0.0025, 0, 0, 0, 0.0025, 0, 0, 0, 0.0025};
-
-  //roll = (float)atan2(acc_gyro.raw.acc_y, acc_gyro.raw.acc_z);
-  // float accel_x_g = bfs::convacc(accel_x_mps2, bfs::LinAccUnit::MPS2, bfs::LinAccUnit::G);
-  // float accel_y_g = bfs::convacc(accel_y_mps2, bfs::LinAccUnit::MPS2, bfs::LinAccUnit::G);
-  // float accel_z_g = bfs::convacc(accel_z_mps2, bfs::LinAccUnit::MPS2, bfs::LinAccUnit::G);
-  
-  // // Calculate roll
-  // roll = (float)atan2(accel_y_g, accel_z_g);
-
-  // // Calculate pitch
-  // if (accel_y_g * sin(roll) + accel_z_g * cos(roll) == 0){
-  //   if (accel_x_g>0){
-  //     pitch = PI / 2;
-  //   } else{
-  //     pitch = -PI / 2;
-  //   }
-  // }else{
-  //   pitch = (float)atan(-accel_x_g / (accel_y_g * sin(roll) + accel_z_g * cos(roll)));
-  // }
-
-  // // Calculate yaw
-  // yaw = (float)atan2(mag_x_ut * sin(roll) - mag_y_ut * cos(roll), mag_x_ut * cos(pitch) + mag_y_ut * sin(pitch) * sin(roll) + mag_z_ut * sin(pitch) * cos(roll));
-  
   Eigen::Vector3f ypr_rad = bfs::TiltCompass(accel_mps2, mag_ut);
-  //printf("%f,%f,%f\n",- ypr_rad.x(), ypr_rad.y(), -ypr_rad.z());
   Eigen::Quaternionf quat = bfs::angle2quat(-ypr_rad.x(), ypr_rad.y(), -ypr_rad.z()); // Build quat on X over Y over Z, how IMU's normally work
 
   // Set orientation
@@ -103,4 +70,7 @@ void imu_publisher_setup(){
   // add timer to executor
   RCCHECK(rclc_executor_add_timer(&executor, &imu_timer));
   Serial.println("Add rclc timer for /imu to executor");
+
+  // set frame_id
+  imu_msg.header.frame_id = micro_ros_string_utilities_init("imu_link");
 }

@@ -22,8 +22,7 @@ rcl_timer_t temp_timer;
 sensor_msgs__msg__Temperature temp_msg;
 
 void temp_publish(rcl_timer_t * timer, int64_t last_call_time) {
-    temp_msg.header.frame_id = micro_ros_string_utilities_init("base_link");
-    temp_msg.header.stamp.sec = millis()/1000;
+    update_time_header(&temp_msg.header.stamp);
 
     temp_msg.temperature = die_temp_c;
 
@@ -48,4 +47,7 @@ void temp_publisher_setup(){
   // add timer to executor
   RCCHECK(rclc_executor_add_timer(&executor, &temp_timer));
   Serial.println("Add rclc timer for /temperature to executor");
+
+  // set frame_id on msg  
+  temp_msg.header.frame_id = micro_ros_string_utilities_init("imu_link");
 }

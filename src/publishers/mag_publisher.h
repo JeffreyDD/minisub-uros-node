@@ -21,8 +21,7 @@ rcl_timer_t mag_timer;
 sensor_msgs__msg__MagneticField mag_msg;
 
 void mag_publish(rcl_timer_t * timer, int64_t last_call_time) {
-    mag_msg.header.frame_id = micro_ros_string_utilities_init("base_link");
-    mag_msg.header.stamp.sec = millis()/1000;
+    update_time_header(&mag_msg.header.stamp);
 
     mag_msg.magnetic_field.x = mag_ut.x() * 0.000001;
     mag_msg.magnetic_field.y = mag_ut.y() * 0.000001;
@@ -50,4 +49,7 @@ void mag_publisher_setup(){
   // add timer to executor
   RCCHECK(rclc_executor_add_timer(&executor, &mag_timer));
   Serial.println("Add rclc timer for /magnetometer to executor");
+
+  // set frame_id on msg  
+  mag_msg.header.frame_id = micro_ros_string_utilities_init("imu_link");
 }
