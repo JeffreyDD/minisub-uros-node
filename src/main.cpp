@@ -86,6 +86,14 @@ void setup() {
 void loop() {
   // Serial.println("Looping");
 
+  // Update micro ros time ref
+  if (rmw_uros_epoch_synchronized())
+  {
+      // Get time in milliseconds or nanoseconds
+      cur_ts.tv_sec = rmw_uros_epoch_millis() / 1000;
+      cur_ts.tv_nsec = rmw_uros_epoch_nanos();
+  }
+
 #if defined(IMU_PUBLISHER_ENABLED) || defined(RAW_IMU_PUBLISHER_ENABLED) || defined(MAG_PUBLISHER_ENABLED) || defined(TEMP_PUBLISHER_ENABLED)
   // Gather IMU Data
   imu_update();

@@ -31,7 +31,9 @@ static micro_ros_utilities_memory_conf_t power_mem_conf = {0};
 
 void power_publish(rcl_timer_t * timer, int64_t last_call_time) {
     ina226_update();
-    
+
+    update_time_header(&power_msg.header.stamp);
+
     power_msg.voltage = power_voltage;
     power_msg.current = power_current;
 

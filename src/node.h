@@ -6,12 +6,17 @@
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 
+#include <builtin_interfaces/msg/time.h>
+
 #include "util.h"
+#include "config.h"
 
 rcl_allocator_t allocator;
 rclc_support_t support;
 rcl_node_t node;
 rclc_executor_t executor;
+
+struct timespec cur_ts;
 
 void node_setup(char* node_name){
     allocator = rcl_get_default_allocator();
@@ -24,6 +29,14 @@ void node_setup(char* node_name){
 
     // create executor
     RCCHECK(rclc_executor_init(&executor, &support.context, 6, &allocator));
+
+    // Synchronize time with the agent
+    rmw_uros_sync_session(TIMESYNC_TIMEOUT);
+}
+
+void update_time_header(builtin_interfaces__msg__Time* time_header){
+		time_header->sec = cur_ts.tv_sec;
+		time_header->nanosec = cur_ts.tv_nsec;
 }
 
 #endif
