@@ -14,29 +14,20 @@
 #include "units.h"
 #include "navigation.h"
 
+#include "config.h"
 #include "util.h"
 #include "node.h"
 #include "drivers/imu.h"
 
 rcl_publisher_t imu_publisher;  
+rcl_timer_t imu_timer;
 
 sensor_msgs__msg__Imu imu_msg;
-
-void imu_publisher_setup(){
-  // create publisher
-  RCCHECK(rclc_publisher_init_best_effort(
-    &imu_publisher,
-    &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
-    "imu"
-  ));
-  Serial.println("Created rclc ROS Publisher /imu");
-}
 
 float roll, pitch, yaw;
 int secs, nanos;
 
-void imu_publish() {  
+void imu_publish(rcl_timer_t * timer, int64_t last_call_time) {  
   secs = millis()/1000;
   nanos = millis()-(secs*1000)*1000;
 
@@ -93,4 +84,23 @@ void imu_publish() {
   RCSOFTCHECK(rcl_publish(&imu_publisher, &imu_msg, NULL));
 
   // Serial.println("Orientation sent");
+}
+
+void imu_publisher_setup(){
+  // create publisher
+  RCCHECK(rclc_publisher_init_best_effort(
+    &imu_publisher,
+    &node,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
+    "imu"
+  ));
+  Serial.println("Created rclc ROS Publisher /imu");
+
+  // init timer
+  RCCHECK(rclc_timer_init_default(&imu_timer, &support, RCL_MS_TO_NS(IMU_PUBLISHER_TIMER_INTERVAL), imu_publish));
+  Serial.println("Created rclc timer for /imu");
+
+  // add timer to executor
+  RCCHECK(rclc_executor_add_timer(&executor, &imu_timer));
+  Serial.println("Add rclc timer for /imu to executor");
 }

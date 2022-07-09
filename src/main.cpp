@@ -6,8 +6,6 @@
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 
-#include <geometry_msgs/msg/twist.h>
-
 #include "util.h"
 #include "node.h"
 #include "publishers/imu_publisher.h"
@@ -16,6 +14,8 @@
 #include "publishers/temp_publisher.h"
 #include "publishers/power_publisher.h"
 #include "subscribers/motor_control_twist_subscriber.h"
+
+#include "drivers/ina226.h"
 
 #include "config.h"
 
@@ -75,7 +75,7 @@ void setup() {
 
 #ifdef POWER_PUBLISHER_ENABLED
   // Setup INA226 power meter board
-  power_meter_setup();
+  ina226_setup();
 
   // Setup battery state publisher
   power_publisher_setup();
@@ -87,44 +87,16 @@ void loop() {
   // Serial.println("Looping");
 
 #if defined(IMU_PUBLISHER_ENABLED) || defined(RAW_IMU_PUBLISHER_ENABLED) || defined(MAG_PUBLISHER_ENABLED) || defined(TEMP_PUBLISHER_ENABLED)
-  // Add a delay to ensure we're not segfaulting every 50 seconds?
-  delay(100);
-  
   // Gather IMU Data
   imu_update();
 #endif
 
-#ifdef IMU_PUBLISHER_ENABLED
-  // Publish IMU Data
-  imu_publish();
-#endif
-
-#ifdef IMU_PUBLISHER_ENABLED
-  // Publish IMU Data
-  imu_raw_publish();
-#endif
-
-#ifdef MAG_PUBLISHER_ENABLED
-  // Publish Magnetometer Data
-  mag_publish();
-#endif
-
-#ifdef TEMP_PUBLISHER_ENABLED
-  // Publish Temperature Data
-  temp_publish();
-#endif
+  // Spin executor
+  RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));
 
 #ifdef MOTOR_CONTROL_ENABLED
-  // Spin executor to ensure twist callback is called when data is pushed to the topic
-  RCCHECK(rclc_executor_spin_some(&twist_executor, RCL_MS_TO_NS(100)));
-  
   Serial.print(motor_pwm_left);
   Serial.print(",");
   Serial.println(motor_pwm_right);
-#endif
-
-#ifdef POWER_PUBLISHER_ENABLED
-  power_publish();
-#endif
-  
+#endif  
 }
