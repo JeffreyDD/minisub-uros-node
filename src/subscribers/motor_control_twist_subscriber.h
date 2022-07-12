@@ -24,12 +24,6 @@ void twist_subscription_callback(const void *msgin) {
   
   // if velocity in x direction is 0 turn off LED, if 1 turn on LED
   digitalWrite(LED_PIN, (twist_msg->linear.x == 0) ? LOW : HIGH);
-  
-  // Process message
-  // Serial.print("Twist received: Linear X:");
-  // Serial.print(twist_msg->linear.x);
-  // Serial.print(", Angular Z:");
-  // Serial.println(twist_msg->angular.z);
 
   double speed = twist_msg->linear.x;
   double rotation = twist_msg->angular.z;
@@ -38,7 +32,7 @@ void twist_subscription_callback(const void *msgin) {
 }
 
 void twist_subscription_setup(){
-    // create subscriber
+  // create subscriber
   RCCHECK(rclc_subscription_init_default(
     &twist_subscriber,
     &node,

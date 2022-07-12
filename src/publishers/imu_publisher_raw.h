@@ -20,7 +20,7 @@ rcl_timer_t raw_imu_timer;
 
 std_msgs__msg__Float32MultiArray raw_imu_msg;
 
-static micro_ros_utilities_memory_conf_t conf = {0};
+static micro_ros_utilities_memory_conf_t raw_imu_mem_conf = {0};
 
 void imu_raw_publish(rcl_timer_t * timer, int64_t last_call_time) {
   // Set msg size to number of elements in array
@@ -47,7 +47,7 @@ void raw_imu_publisher_setup(){
   micro_ros_utilities_create_message_memory(
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32MultiArray),
     &raw_imu_msg,
-    conf
+    raw_imu_mem_conf
   );
 
   // Create publisher

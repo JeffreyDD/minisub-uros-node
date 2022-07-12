@@ -8,12 +8,15 @@
 
 #include "util.h"
 #include "node.h"
+
 #include "publishers/imu_publisher.h"
 #include "publishers/imu_publisher_raw.h"
 #include "publishers/mag_publisher.h"
 #include "publishers/temp_publisher.h"
 #include "publishers/power_publisher.h"
+
 #include "subscribers/motor_control_twist_subscriber.h"
+#include "subscribers/thrust_subscriber.h"
 
 #include "drivers/ina226.h"
 
@@ -67,10 +70,18 @@ void setup() {
   // Setup motor control (PWM pins)
   setup_motor_control();
   Serial.println("Setup motor control done");
+#endif
 
+#ifdef MOTOR_TWIST_SUBSCRIBER_ENABLED
   // Setup Twist subscriber
   twist_subscription_setup();
   Serial.println("Setup twist subscription done");
+#endif
+
+#ifdef MOTOR_THRUST_SUBSCRIBER_ENABLED
+  // Setup Thrust subscriber
+  thrust_subscription_setup();
+  Serial.println("Setup thrust subscription done");
 #endif
 
 #ifdef POWER_PUBLISHER_ENABLED
@@ -84,8 +95,6 @@ void setup() {
 }
 
 void loop() {
-  // Serial.println("Looping");
-
   // Update micro ros time ref
   if (rmw_uros_epoch_synchronized())
   {
@@ -102,7 +111,7 @@ void loop() {
   // Spin executor
   RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));
 
-#ifdef MOTOR_CONTROL_ENABLED
+#ifdef MOTOR_PWM_DEBUG
   Serial.print(motor_pwm_left);
   Serial.print(",");
   Serial.println(motor_pwm_right);
