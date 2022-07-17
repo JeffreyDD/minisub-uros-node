@@ -83,5 +83,9 @@ void set_motors_proportionaly(double speed){
   motor_pwm = (speed * ((motor_pwm_max - motor_pwm_min) / 2)) + motor_pwm_min + ((motor_pwm_max - motor_pwm_min) / 2);
   motor_pwm_left = motor_pwm;
   motor_pwm_right = motor_pwm;
+
+  // Update motor pwm
+  motor_left.write(motor_pwm_left);
+  motor_right.write(motor_pwm_right);  
 }
 #endif
