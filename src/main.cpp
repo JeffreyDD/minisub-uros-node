@@ -8,11 +8,14 @@
 
 #include "util.h"
 #include "node.h"
+
 #include "publishers/imu_publisher.h"
 #include "publishers/imu_publisher_raw.h"
 #include "publishers/mag_publisher.h"
 #include "publishers/temp_publisher.h"
 #include "publishers/power_publisher.h"
+#include "publishers/fluid_pres_publisher.h"
+
 #include "subscribers/motor_control_twist_subscriber.h"
 
 #include "drivers/ina226.h"
@@ -62,6 +65,12 @@ void setup() {
   temp_publisher_setup();
   Serial.println("Setup Temperature Publisher done");
 #endif
+
+#ifdef FLUID_PRES_PUBLISHER_ENABLED
+  // Setup Fluid Pressure Publisher
+  fluid_pres_publisher_setup();
+  Serial.println("Setup Temperature Publisher done");
+#endif 
 
 #ifdef MOTOR_CONTROL_ENABLED
   // Setup motor control (PWM pins)
